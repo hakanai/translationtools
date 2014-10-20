@@ -1,0 +1,24 @@
+#!/usr/bin/env ruby
+
+require 'proptool/properties'
+require 'proptool/merge_command'
+
+def usage
+  $stderr.puts("usage: #{$0} merge <srcdir> <destdir>")
+end
+
+if __FILE__ == $0
+  if ARGV.size < 1
+    usage
+    exit 1
+  end
+
+  command = ARGV.shift
+  case command
+  when 'merge'
+    PropTool::MergeCommand.new.run(*ARGV)
+  else
+    usage
+    exit 1
+  end
+end
