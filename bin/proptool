@@ -4,7 +4,9 @@ require 'proptool/properties'
 require 'proptool/merge_command'
 
 def usage
-  $stderr.puts("usage: #{$0} merge <srcdir> <destdir>")
+  $stderr.puts(<<EOF)
+usage: #{$0} merge [--source-encoding=<encoding>] <srcdir> <destdir>
+EOF
 end
 
 if __FILE__ == $0
