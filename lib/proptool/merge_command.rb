@@ -37,25 +37,35 @@ module PropTool
 
       Pathname.glob("#{srcdir}/**/*.properties") do |srcfile|
         dstfile = dstdir.join(srcfile.relative_path_from(srcdir))
-        merge(srcfile, srcopts, dstfile)
+        templatefile = if dstfile.to_s =~ /^(.*?)(?:_[a-zA-Z0-9_]+)+(.properties)$/
+          Pathname.new("#{$1}#{$2}")
+        else
+          nil
+        end
+        merge(srcfile, srcopts, dstfile, templatefile)
       end
     end
 
   protected
 
-    def merge(srcfile, srcopts, dstfile)
-      srcprops = Properties.load(srcfile, srcopts)
+    def merge(srcfile, srcopts, dstfile, templatefile)
 
-      merged =
-        if dstfile.exist?
-          Properties.load(dstfile)
-        else
-          Properties.new
-        end
+      # If there is a file to use as a template, use that, to get the same ordering.
+      merged = if (templatefile && templatefile.exist?)
+        Properties.load(templatefile)
+      else
+        Properties.new
+      end
 
-      # A detail of Ruby (since 1.9) is that hashes remain in original insertion order.
+      # Then insert any translations which were already present for the locale.
+      if dstfile.exist?
+        merged.deep_merge!(Properties.load(dstfile))
+      end
+
+      # Then 
       #TODO: Maintaining the surrounding structure would be nice too, but difficult.
-      merged.merge!(srcprops)
+      srcprops = Properties.load(srcfile, srcopts)
+      merged.deep_merge!(srcprops)
 
       merged.store(dstfile)
     end

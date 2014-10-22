@@ -2,10 +2,12 @@
 
 require 'proptool/properties'
 require 'proptool/merge_command'
+require 'proptool/normalise_command'
 
 def usage
   $stderr.puts(<<EOF)
 usage: #{$0} merge [--source-encoding=<encoding>] <srcdir> <destdir>
+       #{$0} normalise <dir>
 EOF
 end
 
@@ -19,6 +21,8 @@ if __FILE__ == $0
   case command
   when 'merge'
     PropTool::MergeCommand.new.run(*ARGV)
+  when 'normalise', 'normalize'
+    PropTool::NormaliseCommand.new.run(*ARGV)
   else
     usage
     exit 1

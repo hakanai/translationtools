@@ -1,6 +1,24 @@
 module PropTool
   class Properties
 
+    # Holds one entry in a properties file.
+    class Entry
+      attr_reader :comment_lines
+      attr_reader :key
+      attr_accessor :value
+
+      def initialize(comment_lines, key, value)
+        @comment_lines = comment_lines
+        @key = key
+        @value = value
+      end
+
+      def store(io)
+        @comment_lines.each { |line| io.write("#{line}\n") }
+        io.write("#{PropertiesFormat.escape_key(@key)}=#{PropertiesFormat.escape_value(@value)}\n")
+      end
+    end
+
     def initialize(hash = {})
       @hash = hash
     end
@@ -13,6 +31,7 @@ module PropTool
       options = { :encoding => 'ISO-8859-1' }.merge!(options)
       properties = Properties.new
       File.open(file.to_s, 'r', :encoding => options[:encoding]) do |io|
+        comment_lines = []
         continuation_key = continuation_value = nil
         io.each_line do |line|
 
@@ -25,8 +44,10 @@ module PropTool
 
           line.strip!
 
-          next if line == ''
-          next if line =~ /^#/
+          if line == '' || line =~ /^#/
+            comment_lines << line
+            next
+          end
 
           # These will be nil for the first line of a property definition.
           key = continuation_key
@@ -34,11 +55,11 @@ module PropTool
           continuation = !!(line =~ /\\$/)
 
           if key
-            value += unescape(line)
+            value += PropertiesFormat.unescape(line)
           else
             #XXX: This only supports = as the separator. Technically the format permits colon or even just space.
             if line =~ /^(.*?)\s*=\s*(.*?)\\?$/
-              key, value = unescape($1), unescape($2)
+              key, value = PropertiesFormat.unescape($1), PropertiesFormat.unescape($2)
             else
               raise "Not properties format? #{line} (file: #{file})"
             end
@@ -49,7 +70,8 @@ module PropTool
             continuation_value = value
           else
             continuation_key = continuation_value = nil
-            properties[key] = value
+            properties[key] = Entry.new(comment_lines, key, value)
+            comment_lines = []
           end
         end
       end
@@ -59,8 +81,22 @@ module PropTool
     # Saves the properties to a file.
     def store(file)
       File.open(file.to_s, 'w:ISO-8859-1') do |io|
-        each_pair do |key, value|
-          io.write("#{self.class.escape_key(key)}=#{self.class.escape_value(value)}\n")
+        each_value { |entry| entry.store(io) }
+      end
+    end
+
+    # Merges new properties into these. If a property exists in both, its value is replaced with the value
+    # from the properties passed in but comments on the original are retained.
+    # As the method name suggests, the changes are done inline rather than creating a copy.
+    # A detail of Ruby (since 1.9) is that hashes remain in original insertion order, so that is the case here as well.
+    # TODO: Some thought should be given to merging comments, but it's difficult as some people seem to translate them..?
+    def deep_merge!(properties)
+      properties.each_value do |entry|
+        existing_entry = self[entry.key]
+        if existing_entry
+          existing_entry.value = entry.value
+        else # no existing entry, add to the end
+          self[entry.key] = entry
         end
       end
     end
@@ -71,13 +107,16 @@ module PropTool
     # Delegating hash-like operations to the hash
     def keys; @hash.keys; end
     def each_pair(&block); @hash.each_pair(&block); end
+    def each_key(&block); @hash.each_key(&block); end
+    def each_value(&block); @hash.each_value(&block); end
     def merge(hash); Properties.new(@hash.merge(hash)); end
     def merge!(hash); @hash.merge!(hash); end
     def [](key); @hash[key]; end
     def []=(key, value); @hash[key] = value; end
+  end
 
-  protected
-
+  # Holds rules for how to format files.
+  module PropertiesFormat
     def self.escape_key(str)
       esc = ''
       str.each_char do |ch|
