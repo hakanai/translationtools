@@ -3,10 +3,12 @@
 require 'proptool/properties'
 require 'proptool/merge_command'
 require 'proptool/normalise_command'
+require 'proptool/split_command'
 
 def usage
   $stderr.puts(<<EOF)
-usage: #{$0} merge [--source-encoding=<encoding>] <srcdir> <destdir>
+usage: #{$0} split <srcdir> <destdir>
+       #{$0} merge [--source-encoding=<encoding>] <srcdir> <destdir>
        #{$0} normalise <dir>
 EOF
 end
@@ -19,11 +21,14 @@ if __FILE__ == $0
 
   command = ARGV.shift
   case command
+  when 'split'
+    PropTool::SplitCommand.new.run(*ARGV)
   when 'merge'
     PropTool::MergeCommand.new.run(*ARGV)
   when 'normalise', 'normalize'
     PropTool::NormaliseCommand.new.run(*ARGV)
   else
+    $stderr.puts("Unrecognised command: #{command}")
     usage
     exit 1
   end

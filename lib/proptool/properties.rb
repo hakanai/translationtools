@@ -13,9 +13,9 @@ module PropTool
         @value = value
       end
 
-      def store(io)
+      def store(io, native)
         @comment_lines.each { |line| io.write("#{line}\n") }
-        io.write("#{PropertiesFormat.escape_key(@key)}=#{PropertiesFormat.escape_value(@value)}\n")
+        io.write("#{PropertiesFormat.escape_key(@key, native)}=#{PropertiesFormat.escape_value(@value, native)}\n")
       end
     end
 
@@ -79,9 +79,15 @@ module PropTool
     end
 
     # Saves the properties to a file.
-    def store(file)
-      File.open(file.to_s, 'w:ISO-8859-1') do |io|
-        each_value { |entry| entry.store(io) }
+    # @param file [String]
+    # @param options [Hash]:
+    #         :encoding - the encoding to write the file in (default is the standard ISO-8859-1.)
+    #                     if specified, non-ASCII characters will not be escaped.
+    def store(file, options = {})
+      options = { :encoding => 'ISO-8859-1' }.merge!(options)
+      native = (options[:encoding] != 'ISO-8859-1')
+      File.open(file.to_s, 'w', :encoding => options[:encoding]) do |io|
+        each_value { |entry| entry.store(io, native) }
       end
     end
 
@@ -117,7 +123,7 @@ module PropTool
 
   # Holds rules for how to format files.
   module PropertiesFormat
-    def self.escape_key(str)
+    def self.escape_key(str, native)
       esc = ''
       str.each_char do |ch|
         esc +=
@@ -129,27 +135,35 @@ module PropTool
           when ' '
             '\ '
           else
-            value_char_escape(ch)
+            value_char_escape(ch, native)
           end
       end
       esc
     end
 
-    def self.escape_value(str)
+    def self.escape_value(str, native)
       esc = ''
       str.each_char do |ch|
-        esc += value_char_escape(ch)
+        esc += value_char_escape(ch, native)
       end
       esc
     end
 
-    def self.value_char_escape(ch)
+    def self.value_char_escape(ch, native)
       if ch.ord > 65535
-        # U+10099 => \uD800\uDC99
-        surrogates = ch.encode('UTF-16BE').unpack('n*')
-        self.u_escape(surrogates[0]) + self.u_escape(surrogates[1])
+        if native
+          ch
+        else
+          # U+10099 => \uD800\uDC99
+          surrogates = ch.encode('UTF-16BE').unpack('n*')
+          self.u_escape(surrogates[0]) + self.u_escape(surrogates[1])
+        end
       elsif ch.ord > 127
-        self.u_escape(ch.ord)
+        if native
+          ch
+        else
+          self.u_escape(ch.ord)
+        end
       else
         case ch
         when '\\'
