@@ -36,7 +36,11 @@ module PropTool
 
     def normalise(file, templatefile)
       normalised = Properties.load(templatefile)
-      normalised.deep_merge!(Properties.load(file))
+      translated = Properties.load(file)
+      # Replacing all root strings with localised strings.
+      normalised.deep_merge!(translated)
+      # Removing any remaining root strings with no localisation.
+      normalised.keep_if { |key, value| translated.key?(key) }
       normalised.store(file)
     end
 

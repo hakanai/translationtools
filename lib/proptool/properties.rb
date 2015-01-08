@@ -117,8 +117,10 @@ module PropTool
     def each_value(&block); @hash.each_value(&block); end
     def merge(hash); Properties.new(@hash.merge(hash)); end
     def merge!(hash); @hash.merge!(hash); end
+    def keep_if(&block); @hash.keep_if(&block); end
     def [](key); @hash[key]; end
     def []=(key, value); @hash[key] = value; end
+    def key?(key); @hash.key?(key); end
   end
 
   # Holds rules for how to format files.
