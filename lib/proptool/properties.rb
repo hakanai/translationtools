@@ -117,6 +117,7 @@ module PropTool
     def each_value(&block); @hash.each_value(&block); end
     def merge(hash); Properties.new(@hash.merge(hash)); end
     def merge!(hash); @hash.merge!(hash); end
+    def delete_if(&block); @hash.delete_if(&block); end
     def keep_if(&block); @hash.keep_if(&block); end
     def [](key); @hash[key]; end
     def []=(key, value); @hash[key] = value; end

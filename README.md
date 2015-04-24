@@ -8,12 +8,21 @@ proptool
 
 When you're sending out all the files for a translation:
 
-    proptool split [--desination-encoding=<encoding>] <srcdir> <destdir>
+    proptool split [--destination-encoding=<encoding>] <srcdir> <destdir>
 
 This will create a directory structure with each locale's files under a directory
 for that locale. The root locale's files are put under a directory called "root",
 but since this tool matches all .properties files, it is likely to find files you
 don't want to translate.
+
+When you're sending out files for a new translation job, you can dump just the files
+which have untranslated strings:
+
+    proptool prepare-job --locales=ja,zh_CN [--destination-encoding=<encoding>] \
+             <srcdir> <destdir>
+
+This will create a similar directory structure to `split`, but with each file only
+containing the strings which are untranslated.
 
 When files come back from a translator and you're merging them back in:
 
