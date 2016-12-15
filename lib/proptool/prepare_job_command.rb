@@ -1,3 +1,5 @@
+require 'byebug'
+
 module PropTool
   class PrepareJobCommand
     # args[0] - root of source directory
@@ -7,6 +9,7 @@ module PropTool
       dstdirstr = nil
 
       locales = []
+      includes = []
       excludes = []
       dstopts = {}
 
@@ -16,6 +19,8 @@ module PropTool
         arg = args.shift
         if arg =~ /^--locales=(.*)$/
           locales = $1.split(',')
+        elsif arg =~ /^--include=(.*)$/
+          includes << $1
         elsif arg =~ /^--exclude=(.*)$/
           excludes << $1
         elsif arg =~ /^--destination-encoding=(.*)$/
@@ -41,16 +46,16 @@ module PropTool
       Pathname.glob("#{srcdir}/**/*.properties") do |srcfile|
         # Because srcdir could be . and dealing with ./* paths is a hassle.
         srcfile = srcfile.cleanpath
-
-        next if excludes.any?{ |glob| srcfile.fnmatch?(glob) }
-
         srcpath = srcfile.relative_path_from(srcdir)
+
+        next if excludes.any? { |glob| srcpath.fnmatch?(glob) }
+        next if !includes.empty? && !includes.any? { |glob| srcpath.fnmatch?(glob) }
+
         if srcpath.to_s =~ /^([^_]*?)(.properties)$/
           locales.each do |locale|
             dstpath = "#{$1}_#{locale}#{$2}"
             localised_srcfile = srcdir.join(dstpath)
             dstfile = dstdir.join(locale).join(dstpath)
-            FileUtils.mkdir_p(dstfile.parent)
 
             properties = Properties.load(srcfile)
 
@@ -60,7 +65,10 @@ module PropTool
               properties.delete_if { |key, value| translated.key?(key) }
             end
 
-            properties.store(dstfile)
+            if !properties.empty?
+              FileUtils.mkdir_p(dstfile.parent)
+              properties.store(dstfile)
+            end
           end
         end
       end

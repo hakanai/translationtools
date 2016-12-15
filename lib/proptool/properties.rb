@@ -122,6 +122,7 @@ module PropTool
     def [](key); @hash[key]; end
     def []=(key, value); @hash[key] = value; end
     def key?(key); @hash.key?(key); end
+    def empty?; @hash.empty?; end
   end
 
   # Holds rules for how to format files.

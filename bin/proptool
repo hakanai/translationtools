@@ -9,7 +9,10 @@ require 'proptool/split_command'
 def usage
   $stderr.puts(<<EOF)
 usage: #{$0} split <srcdir> <destdir>
-       #{$0} prepare-job --locales=<loc>[,<loc>...] [--exclude=<pathglob> ...] <srcdir> <destdir>
+       #{$0} prepare-job --locales=<loc>[,<loc>...]
+                         [--include=<pathglob> ...]
+                         [--exclude=<pathglob> ...]
+                         <srcdir> <destdir>
        #{$0} merge [--source-encoding=<encoding>] <srcdir> <destdir>
        #{$0} normalise <dir>
 EOF
