@@ -19,12 +19,17 @@ When you're sending out files for a new translation job, you can dump just the f
 which have untranslated strings:
 
     proptool prepare-job --locales=ja,zh_CN \
-             [--exclude=<pathglob> ...]
+             [--include=<pathglob> ...] \
+             [--exclude=<pathglob> ...] \
              [--destination-encoding=<encoding>] \
              <srcdir> <destdir>
 
 This will create a similar directory structure to `split`, but with each file only
 containing the strings which are untranslated.
+
+Include and exclude patterns are file globs matched on the relative path to the top
+source directory. If both are specified, an exclusion takes priority over an
+inclusion. If no inclusions are specified, everything is included by default.
 
 When files come back from a translator and you're merging them back in:
 
