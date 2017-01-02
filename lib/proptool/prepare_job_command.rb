@@ -43,6 +43,8 @@ module PropTool
       srcdir = Pathname.new(srcdirstr)
       dstdir = Pathname.new(dstdirstr)
 
+      statistics = {}
+
       Pathname.glob("#{srcdir}/**/*.properties") do |srcfile|
         # Because srcdir could be . and dealing with ./* paths is a hassle.
         srcfile = srcfile.cleanpath
@@ -66,12 +68,44 @@ module PropTool
             end
 
             if !properties.empty?
+              stats = (statistics[locale] ||= Hash.new(0))
+              properties.each_pair do |key, value|
+                stats[:strings] += 1
+                stats[:words] += count_words(value.value)
+              end
+
               FileUtils.mkdir_p(dstfile.parent)
               properties.store(dstfile)
             end
           end
         end
       end
+
+      puts '+--------------------------------------+'
+      puts '|  Missing string report               |'
+      puts '+--------------+-----------+-----------+'
+      puts '|  Locale      |  Strings  |    Words  |'
+
+      statistics.each_pair do |locale, stats|
+        puts '+--------------+-----------+-----------+'
+        #XXX: Commas would look nicer for the numbers but Ruby appears to lack the ability.
+        puts "|  %-10s  |  %7d  |  %7d  |" % [ locale, stats[:strings], stats[:words] ]
+      end
+
+      puts '+--------------+-----------+-----------+'
+
+    end
+
+    private
+
+    # Fairly rough word count implementation.
+    #
+    # @param string [String] the input string.
+    # @return [Integer] the number of words in the string.
+    def count_words(string)
+      string.gsub(/<[^>]+>/, ' ')
+            .gsub(/\\W+/, ' ')
+            .strip.split(' ').size
     end
   end
 end

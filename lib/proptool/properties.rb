@@ -123,6 +123,7 @@ module PropTool
     def []=(key, value); @hash[key] = value; end
     def key?(key); @hash.key?(key); end
     def empty?; @hash.empty?; end
+    def size; @hash.size; end
   end
 
   # Holds rules for how to format files.
@@ -183,7 +184,7 @@ module PropTool
         else
           ch
         end
-      end 
+      end
     end
 
     def self.u_escape(ord)
