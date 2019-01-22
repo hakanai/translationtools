@@ -1,5 +1,3 @@
-require 'byebug'
-
 module PropTool
   class PrepareJobCommand
     # args[0] - root of source directory
