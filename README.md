@@ -9,6 +9,8 @@ proptool
 When you're sending out all the files for a translation:
 
     proptool split [--locales=de,ja] \
+             [--include=<pathglob> ...] \
+             [--exclude=<pathglob> ...] \
              [--destination-encoding=<encoding>] \
              <srcdir> <destdir>
 
