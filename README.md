@@ -8,7 +8,9 @@ proptool
 
 When you're sending out all the files for a translation:
 
-    proptool split [--destination-encoding=<encoding>] <srcdir> <destdir>
+    proptool split [--locales=de,ja] \
+             [--destination-encoding=<encoding>] \
+             <srcdir> <destdir>
 
 This will create a directory structure with each locale's files under a directory
 for that locale. The root locale's files are put under a directory called "root",
@@ -45,3 +47,10 @@ a tool to clean that up:
 
     proptool normalise <dir>
 
+
+Building
+--------
+
+```
+rake install
+```

@@ -9,7 +9,10 @@ module PropTool
 
     def usage
       $stderr.puts(<<EOF)
-usage: #{$0} split <srcdir> <destdir>
+usage: #{$0} split [--locales=<loc>[,<loc>...]]
+                   [--include=<pathglob> ...]
+                   [--exclude=<pathglob> ...]
+                   <srcdir> <destdir>
        #{$0} prepare-job --locales=<loc>[,<loc>...]
                          [--include=<pathglob> ...]
                          [--exclude=<pathglob> ...]
