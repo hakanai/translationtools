@@ -50,9 +50,9 @@ module PropTool
         dstpath =
           if srcpath.to_s =~ /^(.*?)(?:_([a-zA-Z0-9_]+))(.properties)$/
             prefix, locale, suffix = $1, $2, $3
-            "#{locale}/#{prefix}#{suffix}"
+            "#{prefix}_#{locale}#{suffix}"
           else
-            "root/#{srcpath}"
+            "#{srcpath}"
           end
 
         next if locale && !locales.empty? && !locales.include?(locale)
